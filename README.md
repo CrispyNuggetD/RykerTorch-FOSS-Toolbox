@@ -49,7 +49,7 @@ The structure can grow over time. Smaller projects should stay easy to browse, w
 
 | Project | Description | Status |
 |---|---|---|
-| [`timestamp_daily_organiser.sh`](shell-scripts/timestamp-daily-organiser/) | A clipboard-driven POSIX shell daily organiser for structured event tracking, planned durations, elapsed-time filenames, overshoot tracking, goals, notes, and reflections. It records event start times, planned durations, planned end times, signed overshoot, cumulative daily overshoot, goals, notes, and reflections without requiring a database or hidden state file. | Experimental / actively tested |
+| [`timestamp_daily_organiser.sh`](./shell-scripts/timestamp-daily-organiser/README.md) | A clipboard-driven POSIX shell daily organiser for structured event tracking, planned durations, elapsed-time filenames, overshoot tracking, goals, notes, and reflections. It records event start times, planned durations, planned end times, signed overshoot, cumulative daily overshoot, goals, notes, and reflections without requiring a database or hidden state file. | Experimental / actively tested |
 
 More scripts will be added here with a short summary. Each script's directory contains its full documentation, examples, platform notes, and known limitations.
 
