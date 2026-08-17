@@ -28,281 +28,110 @@ die()
 
 show_help()
 {
-	cat <<'EOF'
-TIMESTAMP / EVENT TIMER
-=======================
-
-A clipboard-based timer and event tracker.
-
-The clipboard is the script's memory. You do not need to create or manage
-any state files.
-
-
-QUICK START
------------
-
-1. Simple stopwatch:
-
-   ./timestamp_duration.sh
-
-   Run once:
-     Copies the current timestamp to the clipboard.
-
-   Run again:
-     Calculates the elapsed time since that timestamp and copies a
-     filename-friendly result.
-
-
-2. Start an event:
-
-   ./timestamp_duration.sh "Study"
-
-   This starts an event named "Study" using your computer's current
-   timezone.
-
-
-3. Start an event with a planned duration:
-
-   ./timestamp_duration.sh "Study" 1h30m
-
-   The event starts now and is planned to last 1 hour 30 minutes.
-
-
-4. Start an event using a specific UTC offset:
-
-   ./timestamp_duration.sh 8 "Study" 1h30m
-
-   The UTC offset is OPTIONAL.
-
-   If omitted:
-     The computer's configured timezone is used.
-
-   If supplied:
-     It must be the FIRST argument.
-
-   Examples:
-     8     UTC+8
-     0     UTC
-     -5    UTC-5
-
-
-USAGE
------
-
-   ./timestamp_duration.sh
-   ./timestamp_duration.sh [UTC_OFFSET]
-   ./timestamp_duration.sh "EVENT"
-   ./timestamp_duration.sh "EVENT" [DURATION]
-   ./timestamp_duration.sh [UTC_OFFSET] "EVENT" [DURATION]
-
-   ./timestamp_duration.sh help
-   ./timestamp_duration.sh -h
-   ./timestamp_duration.sh --help
-
-
-DURATION FORMAT
----------------
-
-A bare number means MINUTES.
-
-   10          10 minutes
-   90          90 minutes
-   10m         10 minutes
-   1h          1 hour
-   1h30m       1 hour 30 minutes
-   1h2m3s      1 hour 2 minutes 3 seconds
-
-The duration is optional.
-
-Therefore:
-
-   ./timestamp_duration.sh "Study"
-
-is valid. It starts the event without setting a planned duration.
-
-
-HOW EVENT TRACKING WORKS
-------------------------
-
-Starting your first event:
-
-   ./timestamp_duration.sh "Study" 1h
-
-creates a human-readable event template and copies it to the clipboard.
-
-For example:
-
-   Event Number: 1
-   Current event: Study
-   Current event started at: 20260818(Tue)040000+0800
-   Current event planned duration: 1h
-   Current event planned end time: 050000
-
-The template also contains editable sections:
-
-   A. Event to-do's/goals
-   B. Event planning/what or how to achieve goals
-   C. Event notes
-   D. Event summary/reflection
-
-You may edit these sections while working.
-
-
-FINISHING AN EVENT
-------------------
-
-There is no separate "stop" command.
-
-Start the NEXT event to finish the current one.
-
-For example:
-
-   ./timestamp_duration.sh "Study" 1h
-
-   ...do your work...
-
-   ./timestamp_duration.sh "Dinner" 30m
-
-Starting "Dinner" causes the script to:
-
-   - finish "Study"
-   - calculate how long Study actually took
-   - compare actual time with its planned duration
-   - calculate overshoot or undershoot
-   - update cumulative overshoot for the day
-   - move Study to "Previous event"
-   - start Dinner as the new "Current event"
-
-
-OVERSHOOT
----------
-
-Overshoot compares actual duration with planned duration.
-
-Example:
-
-   Planned:   01H00M00S
-   Actual:    01H15M00S
-   Overshoot: 15M00S
-
-A negative value means you finished early.
-
-Example:
-
-   Planned:   01H00M00S
-   Actual:    50M00S
-   Overshoot: -10M00S
-
-"Cumulative overshoot today" adds the overshoot/undershoot of your events
-during the day.
-
-
-WHAT YOU MAY EDIT IN THE CLIPBOARD
-----------------------------------
-
-The event template is intentionally human-readable and editable.
-
-You may freely write in:
-
-   A. Event to-do's/goals
-   B. Event planning/what or how to achieve goals
-   C. Event notes
-   D. Event summary/reflection
-
-You may also manually change:
-
-   Current event planned duration
-   Current event planned end time
-
-If a valid planned duration exists, it takes priority.
-
-If planned duration is blank, the script can use a manually entered
-planned end time in HHMMSS format.
-
-Example:
-
-   Current event planned duration:
-   Current event planned end time: 173000
-
-means the event is planned to end at 17:30:00.
-
-
-WHAT NOT TO CHANGE
-------------------
-
-The script reads its state from fixed labels in the clipboard.
-
-Do not rename or remove these lines while an event is active:
-
-   Event Number:
-   Current event:
-   Current event started at:
-   Current event planned duration:
-   Current event planned end time:
-   Cumulative overshoot today:
-
-Changing their labels may prevent the script from recognizing the
-previous event.
-
-
-SIMPLE TIMER VS EVENT MODE
---------------------------
-
-Simple timer:
-
-   ./timestamp_duration.sh
-
-   or:
-
-   ./timestamp_duration.sh 8
-
-No event name is supplied.
-
-
-Event tracker:
-
-   ./timestamp_duration.sh "Study"
-
-   ./timestamp_duration.sh "Study" 1h
-
-   ./timestamp_duration.sh 8 "Study" 1h
-
-
-MOST COMMON COMMANDS
---------------------
-
-Use computer timezone:
-
-   ./timestamp_duration.sh "Study" 1h30m
-
-Force Singapore / UTC+8:
-
-   ./timestamp_duration.sh 8 "Study" 1h30m
-
-Start an event with no planned duration:
-
-   ./timestamp_duration.sh "Free time"
-
-Simple stopwatch:
-
-   ./timestamp_duration.sh
-
-Show this help:
-
-   ./timestamp_duration.sh help
-
-
-REMEMBER
---------
-
-   UTC offset?       OPTIONAL
-   Event name?       REQUIRED for event mode
-   Duration?         OPTIONAL
-   Bare duration?    MINUTES
-   Stop command?     NO -- starting the next event stops the previous one
-   State file?       NO -- the clipboard is the state
-EOF
+	printf '%s\n' \
+		'TIMESTAMP / EVENT TIMER' \
+		'=======================' \
+		'' \
+		'Clipboard-based stopwatch and event tracker.' \
+		'The clipboard itself stores the current event state.' \
+		'' \
+		'QUICK USAGE' \
+		'-----------' \
+		'' \
+		'Simple stopwatch:' \
+		'  ./timestamp_duration.sh' \
+		'' \
+		'Start an event:' \
+		'  ./timestamp_duration.sh "Study"' \
+		'' \
+		'Start an event with a planned duration:' \
+		'  ./timestamp_duration.sh "Study" 1h30m' \
+		'' \
+		'Force a UTC offset:' \
+		'  ./timestamp_duration.sh 8 "Study" 1h30m' \
+		'' \
+		'Show this help:' \
+		'  ./timestamp_duration.sh help' \
+		'  ./timestamp_duration.sh -h' \
+		'  ./timestamp_duration.sh --help' \
+		'' \
+		'UTC OFFSET' \
+		'----------' \
+		'' \
+		'The UTC offset is OPTIONAL.' \
+		'' \
+		'If omitted, the computer configured timezone is used.' \
+		'If supplied, it must be the first argument.' \
+		'' \
+		'Examples:' \
+		'  8     UTC+8' \
+		'  0     UTC' \
+		'  -5    UTC-5' \
+		'' \
+		'So if your computer is already using Singapore time, simply use:' \
+		'  ./timestamp_duration.sh "Study" 1h30m' \
+		'' \
+		'DURATION' \
+		'--------' \
+		'' \
+		'Duration is OPTIONAL.' \
+		'A number without a unit means minutes.' \
+		'' \
+		'Examples:' \
+		'  10          10 minutes' \
+		'  10m         10 minutes' \
+		'  1h          1 hour' \
+		'  1h30m       1 hour 30 minutes' \
+		'  1h2m3s      1 hour 2 minutes 3 seconds' \
+		'' \
+		'EVENT MODE' \
+		'----------' \
+		'' \
+		'Starting an event creates an editable template in the clipboard.' \
+		'' \
+		'There is NO separate stop command.' \
+		'Starting the next event automatically finishes the current event.' \
+		'' \
+		'Example:' \
+		'  ./timestamp_duration.sh "Study" 1h' \
+		'  ./timestamp_duration.sh "Dinner" 30m' \
+		'' \
+		'Starting Dinner finishes Study and calculates:' \
+		'  - actual Study duration' \
+		'  - planned Study duration' \
+		'  - overshoot or undershoot' \
+		'  - cumulative overshoot for the day' \
+		'' \
+		'EDITING THE CLIPBOARD TEMPLATE' \
+		'------------------------------' \
+		'' \
+		'You may freely edit the contents under:' \
+		'  A. Event to-do'\''s/goals' \
+		'  B. Event planning/what or how to achieve goals' \
+		'  C. Event notes' \
+		'  D. Event summary/reflection' \
+		'' \
+		'You may also edit the planned duration or planned end time.' \
+		'' \
+		'Do NOT rename or remove these state labels:' \
+		'  Event Number:' \
+		'  Current event:' \
+		'  Current event started at:' \
+		'  Current event planned duration:' \
+		'  Current event planned end time:' \
+		'  Cumulative overshoot today:' \
+		'' \
+		'REMEMBER' \
+		'--------' \
+		'' \
+		'  UTC offset       optional' \
+		'  Event name       required only for event mode' \
+		'  Duration         optional' \
+		'  Bare integer     minutes' \
+		'  Stop command     none; start the next event' \
+		'  State file       none; clipboard is the state'
 }
+
 os_name=$(uname)
 timezone_arg=
 
