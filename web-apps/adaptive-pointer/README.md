@@ -18,8 +18,9 @@ Plain JavaScript + CSS, no framework, package manager, tracking or external serv
         data-storage-key="my-site.pointer-effects" data-default="on"></script>
 ```
 
-That is all. A **Pointer effects: On/Off** button is added to your first footer
-(or body if no footer exists). Include it only once per page. For a quick preview,
+That is all. A **Pointer: On/Off** button and **Get this effect** source link appear in a compact fixed bottom-right
+dock. It stays reachable while scrolling, with safe-area spacing and room at the
+end of the document. Include it only once per page. For a quick preview,
 open `example.html` through a local static server:
 
 ```sh
@@ -68,3 +69,9 @@ no Apple assets/code are included and no Apple endorsement is implied.
 Bug reports and contributions: use this repository’s Issues. When changing the
 shared behaviour, compare LAN42, this toolbox copy and the portfolio’s vendored
 copy; explain deliberate differences. Test the behaviours above, not just syntax.
+
+The visual family used by LAN42 and the 42 portfolio is called **Campus HQ**.
+This package provides its pointer interaction, not the entire theme/layout.
+Adopters may restyle the dock; keep the off switch readily discoverable and
+retain the MIT notice in redistributed code. A visible source link is provided
+by default, not an additional licence restriction.
