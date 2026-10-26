@@ -55,7 +55,9 @@ More scripts will be added here with a short summary. Each script's directory co
 
 ### Web apps
 
-Small browser-based utilities and experiments will be listed here as they are added.
+| Project | What it provides |
+| --- | --- |
+| [Adaptive pointer](web-apps/adaptive-pointer/README.md) | Copy-and-paste, MIT-licensed CSS/JS for smooth pointer morphing, text-field feedback and accessible fallbacks; includes a demo. |
 
 ### Lectures and tutorials
 
