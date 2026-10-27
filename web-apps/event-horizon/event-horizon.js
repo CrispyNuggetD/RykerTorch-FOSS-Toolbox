@@ -107,7 +107,13 @@
     function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));docking();chatter();}
     function stop(){if(frame)cancelAnimationFrame(frame);frame=0;lastPaint=0;}
     function schedule(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(draw);}
-    function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);schedule();}
+    function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);
+      // Restored scroll positions/hash links may start with the scene offscreen.
+      // Calculate its real home before docking, without requiring a canvas frame.
+      const beginning=Number.isFinite(start)&&start<deadline?start:deadline-90*86400000;
+      const progress=Number.isFinite(deadline)?Math.max(0,Math.min(1,(Date.now()-beginning)/(deadline-beginning))):.35;
+      home={x:40+progress*(width*.70-Math.min(width*.115,55)-74),y:height*(width<520?.49:.52)-18};
+      docking();schedule();}
     function draw(now){
       frame=0;if(!visible||document.hidden)return;
       const moving=animate();if(moving&&lastPaint&&now-lastPaint<32){schedule();return;}
