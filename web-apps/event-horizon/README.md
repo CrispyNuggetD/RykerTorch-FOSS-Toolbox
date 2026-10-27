@@ -153,3 +153,19 @@ Only ephemeral proximity state exists; no pointer history is stored.
 Bubbles are silent, pointer-transparent, excluded from the profile link’s
 accessible name and screen-reader live announcements, and disabled by shared
 motion off/reduced motion/forced colours. They follow the docked link too.
+
+## Public and student profile choices
+
+Set `data-public-url="https://your-public-site.example"` and
+`data-public-label="My website"` on the scene for a labelled profile chooser.
+The public destination can be GitHub, LinkedIn or your own HTTPS website.
+The student destination stays in `data-profile-url` (on the scene or astronaut);
+without a public URL, the astronaut remains a direct student-profile link.
+Both destinations open in new tabs with `noopener noreferrer`. No sign-in or
+network detection is used to guess who a visitor is.
+
+For progressive enhancement, make the authored astronaut `href` the public
+destination and put its student URL in `data-profile-url`. Add explicit public
+and student links to the HTML for no-JS visitors, also with `target="_blank"`
+and `rel="noopener noreferrer"`. The chooser supports keyboard/touch, Escape,
+outside dismissal and stays within the viewport while docked.

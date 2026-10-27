@@ -6,16 +6,47 @@
   function mount(root,options={}){
     if(instances.has(root))return instances.get(root);root.dataset.ehMounted='true';
     const person=root.querySelector('.eh-person'),status=root.querySelector('.eh-status');
+    let profileMenuOpen=false;
     if(!person||!status||!window.IntersectionObserver||!window.ResizeObserver)return;
     const variables=getComputedStyle(root);
     let deadline=parse(options.deadline??root.dataset.deadline??variables.getPropertyValue('--event-horizon-deadline').trim()),start=parse(options.start??root.dataset.start),observed=parse(options.observedAt??root.dataset.observedAt);
+    let profileChoicesSync=()=>{};
     function identity(data){
       const requested=data.gender??root.dataset.gender;const gender=['neutral','male','female'].includes(requested)?requested:'neutral';root.dataset.gender=gender;
       const badge=person.querySelector('.eh-gender-badge');if(badge)badge.textContent=gender==='male'?'♂':gender==='female'?'♀':'✦';
       const login=data.login??root.dataset.login;if(typeof login==='string'&&/^[A-Za-z0-9_.-]{1,32}$/.test(login)){root.dataset.login=login;person.dataset.label=login+' ↗';person.setAttribute('aria-label',login+': '+gender+' student astronaut, open Intra profile');}
       if(typeof data.profileUrl==='string'){try{const url=new URL(data.profileUrl,location.href);if(url.protocol==='https:'&&!url.username&&!url.password)person.href=url.href;}catch{}}
+      profileChoicesSync(data);
     }
-    identity({gender:options.gender??root.dataset.gender,login:options.login??root.dataset.login,profileUrl:options.profileUrl??root.dataset.profileUrl});
+    identity({gender:options.gender??root.dataset.gender,login:options.login??root.dataset.login,profileUrl:options.profileUrl??root.dataset.profileUrl??person.dataset.profileUrl});
+    person.target='_blank';person.rel='noopener noreferrer';
+    const studentUrl=person.href;
+    let publicUrl=null;
+    try{const candidate=new URL(root.dataset.publicUrl||'',location.href);if(root.dataset.publicUrl&&candidate.protocol==='https:'&&!candidate.username&&!candidate.password)publicUrl=candidate.href;}catch{}
+    if(publicUrl){
+      const label=root.dataset.publicLabel||'Public profile';
+      person.href=publicUrl;person.dataset.label=(root.dataset.login||'Student')+' · profiles ↗';
+      person.setAttribute('role','button');person.setAttribute('aria-label','Choose public or 42 student profile');person.setAttribute('aria-haspopup','dialog');person.setAttribute('aria-expanded','false');
+      const panel=document.createElement('div');panel.className='eh-profile-choices';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Choose a profile');panel.hidden=true;
+      const heading=document.createElement('strong');heading.textContent='Where shall we go?';
+      const publicLink=document.createElement('a');publicLink.href=publicUrl;publicLink.textContent='Everyone · '+label+' ↗';publicLink.target='_blank';publicLink.rel='noopener noreferrer';
+      const studentLink=document.createElement('a');studentLink.href=studentUrl;studentLink.textContent='42 students · Intra ↗';studentLink.target='_blank';studentLink.rel='noopener noreferrer';
+      const note=document.createElement('small');note.textContent='Both open in a new tab. Intra requires a 42 account; the public profile is open to everyone.';
+      const close=document.createElement('button');close.type='button';close.textContent='Close';panel.append(heading,publicLink,studentLink,note,close);document.body.append(panel);
+      profileChoicesSync=data=>{if(typeof data.profileUrl==='string'){try{const u=new URL(data.profileUrl,location.href);if(u.protocol==='https:'&&!u.username&&!u.password)studentLink.href=u.href;}catch{}}person.href=publicUrl;person.dataset.label=(root.dataset.login||'Student')+' · profiles ↗';person.setAttribute('aria-label','Choose public or 42 student profile');};
+      function dismiss(focus=false){profileMenuOpen=false;panel.hidden=true;person.setAttribute('aria-expanded','false');person.removeAttribute('data-profile-open');if(focus)person.focus({preventScroll:true});}
+      function open(){profileMenuOpen=true;panel.hidden=false;person.dataset.profileOpen='true';person.setAttribute('aria-expanded','true');
+        const rect=person.getBoundingClientRect(),box=panel.getBoundingClientRect();
+        panel.style.left=Math.max(12,Math.min(innerWidth-box.width-12,rect.left+rect.width/2-box.width/2))+'px';
+        panel.style.top=Math.max(12,Math.min(innerHeight-box.height-12,rect.bottom+14))+'px';publicLink.focus({preventScroll:true});}
+      person.addEventListener('click',event=>{event.preventDefault();profileMenuOpen?dismiss(true):open();});
+      person.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();person.click();}});
+      close.addEventListener('click',()=>dismiss(true));
+      document.addEventListener('keydown',event=>{if(profileMenuOpen&&event.key==='Escape'){event.preventDefault();dismiss(true);}});
+      document.addEventListener('pointerdown',event=>{if(profileMenuOpen&&!panel.contains(event.target)&&!person.contains(event.target))dismiss();});
+      document.addEventListener('focusin',event=>{if(profileMenuOpen&&!panel.contains(event.target)&&event.target!==person)dismiss();});
+      window.addEventListener('resize',()=>dismiss(),{passive:true});
+    }
     const reduced=matchMedia('(prefers-reduced-motion: reduce)'),contrast=matchMedia('(forced-colors: active)');
     const key=root.dataset.storageKey||'foss-toolbox.event-horizon.motion';let motion=true;
     try{motion=localStorage.getItem(key)!=='off';}catch{}
@@ -50,7 +81,7 @@
       hint.hidden=!chatAllowed()||engaged||!finePointer.matches;
       if(!chatAllowed()){bubble.hidden=true;person.classList.remove('eh-distressed');person.dataset.ehMood='quiet';return;}
       const clock=performance.now();if(!discoveryStart)discoveryStart=clock;
-      if(zone==='near'&&clock-nearSince>1300&&!dwellHint){dwellHint=true;react('click me? my Intra is in here :3','near');}
+      if(zone==='near'&&clock-nearSince>1300&&!dwellHint){dwellHint=true;react('click me? pick your destination :3','near');}
       if(clock<reactionUntil)return;
       person.classList.remove('eh-distressed');
       if(!engaged&&finePointer.matches){
@@ -81,7 +112,7 @@
       const moving=motion&&!reduced.matches&&!contrast.matches;
       if(moving&&petLast&&now-petLast<33){petFrame=requestAnimationFrame(dockPosition);return;}
       const dt=petLast?Math.min(70,now-petLast):33;petLast=now;if(moving)petPhase+=dt*.001;
-      if(!person.matches(':hover,:focus-within')){
+      if(!profileMenuOpen&&!person.matches(':hover,:focus-within')){
         const box=root.getBoundingClientRect();
         person.style.left=Math.max(42,Math.min(innerWidth-42,box.left+home.x))+'px';
         person.style.top=(48+(moving?Math.sin(petPhase*1.8)*3:0))+'px';
@@ -96,7 +127,7 @@
       if(shouldDock!==docked){
         const focused=document.activeElement===person;
         docked=shouldDock;person.classList.toggle('eh-docked',docked);
-        if(docked){document.body.append(person);person.title='Your travelling astronaut · open Intra profile';}
+        if(docked){document.body.append(person);person.title=publicUrl?'Your travelling astronaut · choose a profile':'Your travelling astronaut · open Intra profile';}
         else{homeSlot.after(person);person.removeAttribute('title');person.style.left=home.x+'px';person.style.top=home.y+'px';}
         if(focused)person.focus({preventScroll:true});
       }
@@ -136,7 +167,7 @@
       const box=root.getBoundingClientRect();
       const desiredScroll=moving?Math.max(-1,Math.min(1,-box.top/Math.max(1,height))):0;
       scrollDrift=moving?scrollDrift+(desiredScroll-scrollDrift)*.08:0;
-      if(docked||!person.matches(':hover,:focus-within')){
+      if(!profileMenuOpen&&(docked||!person.matches(':hover,:focus-within'))){
         const distance=radius+35+(1-progress)*Math.min(width*.26,170);
         const settled=40+progress*(hx-radius-74),ease=1-Math.pow(1-arrival,3);
         const enter=moving?(1-ease)*Math.min(width*.26,160):0;
