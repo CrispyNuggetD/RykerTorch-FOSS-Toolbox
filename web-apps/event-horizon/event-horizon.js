@@ -203,7 +203,13 @@
       if(moving)schedule();
     }
     window.addEventListener('scroll',()=>{docking();if(visible&&animate())schedule();},{passive:true});
-    window.addEventListener('pointermove',event=>{cursorReaction(event);if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
+    window.addEventListener('pointermove',event=>{cursorReaction(event);if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();
+      const svg=person.querySelector('svg').getBoundingClientRect();
+      const cursorX=(event.clientX-svg.left)*64/svg.width,cursorY=(event.clientY-svg.top)*64/svg.height;
+      const angle=(x,y)=>Math.atan2(cursorY-y,cursorX-x)*180/Math.PI;
+      person.style.setProperty('--eh-reach-left',(angle(20,37)-135)+'deg');
+      person.style.setProperty('--eh-reach-right',(angle(44,37)-45)+'deg');
+      person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
     for(const media of [reduced,contrast])media.addEventListener('change',()=>{controls();stop();schedule();});
