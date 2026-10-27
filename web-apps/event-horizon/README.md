@@ -125,3 +125,13 @@ these semantic HTML records separate from canvas. The 42 portfolio builds its
 M.0–M.3 groups from existing owner snapshot project marks; latest API marked
 dates are not proof of official Intra milestone deadlines/completion dates.
 Milestone deadlines, pace plans and black-hole dates must stay distinct.
+
+## Travelling astronaut (optional)
+
+Add `data-dock-astronaut` to the scene to let its profile link catch at the
+viewport’s top edge when scrolling past it. The same link moves outside the
+scene’s clipping boundary and returns on scroll-back; there is no duplicate
+keyboard target. It keeps global cursor eyes and a gentle float, freezes under
+hover/focus, and respects the shared motion preference and system settings.
+The offscreen scene canvas stays paused; only the visible pet animates, at
+about 30 fps, and hidden tabs pause both. No-JS leaves the original scene link.

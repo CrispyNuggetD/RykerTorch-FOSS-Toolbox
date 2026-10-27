@@ -34,9 +34,39 @@
       countdown.setAttribute('aria-label',values.map((n,i)=>n+' '+units[i].toLowerCase()).join(', ')+' to the recorded deadline');
       cards.forEach((card,i)=>{const value=String(values[i]).padStart(2,'0');if(card.textContent===value)return;card.textContent=value;card.classList.remove('flipping');if(animate()){void card.offsetWidth;card.classList.add('flipping');}});
     }
+    const dockEnabled=root.hasAttribute('data-dock-astronaut');
+    const homeSlot=document.createComment('Astronaut returns here');person.before(homeSlot);
+    let docked=false,petFrame=0,petLast=0,petPhase=0,home={x:40,y:200};
+    function stopPet(){if(petFrame)cancelAnimationFrame(petFrame);petFrame=0;petLast=0;}
+    function dockPosition(now=0){
+      petFrame=0;if(!docked||document.hidden)return;
+      const moving=motion&&!reduced.matches&&!contrast.matches;
+      if(moving&&petLast&&now-petLast<33){petFrame=requestAnimationFrame(dockPosition);return;}
+      const dt=petLast?Math.min(70,now-petLast):33;petLast=now;if(moving)petPhase+=dt*.001;
+      if(!person.matches(':hover,:focus-within')){
+        const box=root.getBoundingClientRect();
+        person.style.left=Math.max(42,Math.min(innerWidth-42,box.left+home.x))+'px';
+        person.style.top=(48+(moving?Math.sin(petPhase*1.8)*3:0))+'px';
+        person.style.setProperty('--eh-tilt',moving?Math.sin(petPhase)*4+'deg':'0deg');
+      }
+      if(!moving){person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');}
+      if(moving)petFrame=requestAnimationFrame(dockPosition);
+    }
+    function docking(){
+      if(!dockEnabled)return;
+      const box=root.getBoundingClientRect(),shouldDock=box.top+home.y<48;
+      if(shouldDock!==docked){
+        const focused=document.activeElement===person;
+        docked=shouldDock;person.classList.toggle('eh-docked',docked);
+        if(docked){document.body.append(person);person.title='Your travelling astronaut · open Intra profile';}
+        else{homeSlot.after(person);person.removeAttribute('title');person.style.left=home.x+'px';person.style.top=home.y+'px';}
+        if(focused)person.focus({preventScroll:true});
+      }
+      stopPet();if(docked)dockPosition();
+    }
     const stars=Array.from({length:85},(_,i)=>({x:((i*73+19)%997)/997,y:((i*137+47)%991)/991,r:.5+(i%3)*.35}));
     function animate(){return motion&&!reduced.matches&&!contrast.matches&&visible&&!document.hidden;}
-    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));}
+    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));docking();}
     function stop(){if(frame)cancelAnimationFrame(frame);frame=0;lastPaint=0;}
     function schedule(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(draw);}
     function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);schedule();}
@@ -62,15 +92,17 @@
       const box=root.getBoundingClientRect();
       const desiredScroll=moving?Math.max(-1,Math.min(1,-box.top/Math.max(1,height))):0;
       scrollDrift=moving?scrollDrift+(desiredScroll-scrollDrift)*.08:0;
-      if(!person.matches(':hover,:focus-within')){
+      if(docked||!person.matches(':hover,:focus-within')){
         const distance=radius+35+(1-progress)*Math.min(width*.26,170);
         const settled=40+progress*(hx-radius-74),ease=1-Math.pow(1-arrival,3);
         const enter=moving?(1-ease)*Math.min(width*.26,160):0;
         const bob=moving?Math.sin(phase*4)*7:0,drift=moving?Math.sin(phase*2.6)*3:0;
-        person.style.left=Math.max(36,Math.min(hx-radius-34,settled-enter+scrollDrift*24+drift))+'px';
-        person.style.top=(hy-18+bob-scrollDrift*22)+'px';
-        person.style.setProperty('--eh-tilt',moving?(Math.sin(phase*3)*4-scrollDrift*8)+'deg':'0deg');
+        home.x=Math.max(36,Math.min(hx-radius-34,settled-enter+scrollDrift*24+drift));
+        home.y=hy-18+bob-scrollDrift*22;
+        if(!docked){person.style.left=home.x+'px';person.style.top=home.y+'px';}
+        if(!docked)person.style.setProperty('--eh-tilt',moving?(Math.sin(phase*3)*4-scrollDrift*8)+'deg':'0deg');
       }
+      docking();
       // Instrument scale is calendar-linear; its marker uses the unanimated position.
       const railStart=40,railEnd=hx-radius-34,railY=hy+82;
       ctx.save();ctx.strokeStyle='#a8e6cf55';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(railStart,railY);ctx.lineTo(hx+radius,railY);ctx.stroke();
@@ -84,17 +116,18 @@
       ctx.textAlign='right';ctx.fillText('RECORDED HORIZON',hx+radius,railY+27);if(valid)ctx.fillText(shortDate(deadline),hx+radius,railY+41);
       ctx.textAlign='center';ctx.fillStyle='#dffff1';ctx.fillText('NOW'+(Number.isFinite(start)?' · DAY '+Math.max(0,Math.floor((epoch-start)/86400000)):''),markX,railY-17);
       // Sparse wake strokes suggest travel, not an accelerated passage of real time.
-      if(moving&&!person.matches(':hover,:focus-within')){const px=parseFloat(person.style.left),py=parseFloat(person.style.top);ctx.strokeStyle='#a8e6cf33';for(let i=0;i<3;i++){const slip=(phase*130+i*17)%48;ctx.beginPath();ctx.moveTo(px-36-slip,py-10+i*10);ctx.lineTo(px-26-slip,py-10+i*10);ctx.stroke();}}
+      if(moving&&!docked&&!person.matches(':hover,:focus-within')){const px=parseFloat(person.style.left),py=parseFloat(person.style.top);ctx.strokeStyle='#a8e6cf33';for(let i=0;i<3;i++){const slip=(phase*130+i*17)%48;ctx.beginPath();ctx.moveTo(px-36-slip,py-10+i*10);ctx.lineTo(px-26-slip,py-10+i*10);ctx.stroke();}}
       ctx.restore();
       if(!lastText||now-lastText>1000){lastText=now;if(valid){const left=deadline-epoch;const days=Math.floor(Math.abs(left)/86400000),hours=Math.floor(Math.abs(left)%86400000/3600000);status.textContent=left>=0?`${days}d ${hours}h to the recorded horizon.`:'Recorded horizon date reached; check your current Intra status.';}else status.textContent='Set a deadline to place your journey in time.';const preview=root.querySelector('.eh-horizon-preview');if(preview)preview.textContent=valid?'Recorded horizon: '+new Date(deadline).toLocaleString('en-SG',{timeZone:'Asia/Singapore'})+' SGT · click for details':'Set a recorded deadline';const note=root.querySelector('.eh-source-note');if(note&&Number.isFinite(observed))note.textContent='Snapshot: '+new Date(observed).toLocaleDateString('en-SG')+(epoch-observed>3*86400000?' · refresh needed':'')+' · not a live eligibility check.';}
       if(moving)schedule();
     }
-    window.addEventListener('scroll',()=>{if(visible&&animate())schedule();},{passive:true});
-    window.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!animate())return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
+    window.addEventListener('scroll',()=>{docking();if(visible&&animate())schedule();},{passive:true});
+    window.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
     for(const media of [reduced,contrast])media.addEventListener('change',()=>{controls();stop();schedule();});
-    document.addEventListener('visibilitychange',()=>{stop();if(!document.hidden)schedule();});
+    document.addEventListener('visibilitychange',()=>{stop();stopPet();if(!document.hidden){docking();schedule();}});
+    window.addEventListener('resize',docking,{passive:true});
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;stop();if(visible)schedule();});observer.observe(root);
     new ResizeObserver(resize).observe(root);controls();resize();tick();
     // Keeps deadline text current even with motion disabled; no animation loop when idle.

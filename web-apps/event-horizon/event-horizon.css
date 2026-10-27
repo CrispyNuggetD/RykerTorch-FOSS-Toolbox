@@ -18,3 +18,6 @@
 @media(forced-colors:active){.eh-flight-caption,.eh-milestones strong,.eh-milestones span,.eh-milestones small,.eh-ruler-fallback{color:CanvasText}.eh-milestones li{background:Canvas;border-color:CanvasText}}
 
 .eh-person{top:52%}.eh-horizon-fallback,.eh-horizon-info{top:52%}@media(max-width:520px){.eh-person,.eh-horizon-fallback,.eh-horizon-info{top:49%}}
+
+/* The same profile link leaves the clipped scene and docks to the viewport. */
+.eh-person.eh-docked{position:fixed;z-index:75;background:#102c3eea;color:#e7fff4;box-shadow:0 3px 20px #07132133;font:12px/1.6 system-ui,sans-serif}.eh-person.eh-docked:after{font-size:10px;top:61px}.eh-person.eh-docked:focus-visible{outline:3px solid #a8e6cf;outline-offset:4px}@media(forced-colors:active){.eh-person.eh-docked{background:Canvas;color:LinkText;outline:1px solid LinkText}}@media print{.eh-person.eh-docked{display:none}}
