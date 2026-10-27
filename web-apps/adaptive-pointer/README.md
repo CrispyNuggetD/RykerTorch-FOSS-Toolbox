@@ -79,3 +79,6 @@ by default, not an additional licence restriction.
 For circular controls or illustrated profile links, add
 `data-pointer-shape="circle"` to the actual link/button/summary. The visual
 morph uses a circle while leaving the real click target unchanged.
+
+More from Christopher Nah (hnah), 42 Singapore:
+[42 portfolio](https://crispynuggetd.github.io/42_Singapore_SUTD/) · [Main 42 repository & README](https://github.com/CrispyNuggetD/42_Singapore_SUTD).

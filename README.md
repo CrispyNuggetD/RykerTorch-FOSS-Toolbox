@@ -134,3 +134,6 @@ Before publishing the repository, add a top-level `LICENSE` file and ensure that
 ## Project status
 
 This is a growing workshop rather than a finished product catalogue. Some items may be polished and stable; others may be experiments, learning projects, or early prototypes. Check each project's README for its current status and known limitations.
+
+More from Christopher Nah (hnah), 42 Singapore:
+[42 portfolio](https://crispynuggetd.github.io/42_Singapore_SUTD/) · [Main 42 repository & README](https://github.com/CrispyNuggetD/42_Singapore_SUTD).

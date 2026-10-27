@@ -96,3 +96,6 @@ Serve `example.html` locally with `python3 -m http.server 8080`. Test valid/miss
 past dates, Unix formats, source updates, links, horizon disclosure, keyboard,
 mobile, JS-off, motion opt-out, reduced motion and offscreen pause. The illustrated
 space treatment belongs to the **Campus HQ** visual family, not an official 42 UI.
+
+More from Christopher Nah (hnah), 42 Singapore:
+[42 portfolio](https://crispynuggetd.github.io/42_Singapore_SUTD/) · [Main 42 repository & README](https://github.com/CrispyNuggetD/42_Singapore_SUTD).
