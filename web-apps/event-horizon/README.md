@@ -135,3 +135,15 @@ keyboard target. It keeps global cursor eyes and a gentle float, freezes under
 hover/focus, and respects the shared motion preference and system settings.
 The offscreen scene canvas stays paused; only the visible pet animates, at
 about 30 fps, and hidden tabs pause both. No-JS leaves the original scene link.
+
+## Tiny astronaut chatter (optional)
+
+Add `data-astronaut-chatter` for ten predefined silly speech bubbles. The
+20-second slot is `floor(Date.now()/20000)`; `(slot*7+3) mod 10` picks the
+phrase, visible for the first 4.5 seconds. Refreshing does not reseed it; there
+is no history, identity seed, storage or reporting. Clock changes alter the
+cycle. Mouse proximity uses 95/165px hysteresis and rate-limited local reactions
+(“helppppp” nearby, “nooo!!!” on departure). No pointer coordinates are retained.
+Bubbles are silent, pointer-transparent, excluded from the profile link’s
+accessible name and screen-reader live announcements, and disabled by shared
+motion off/reduced motion/forced colours. They follow the docked link too.

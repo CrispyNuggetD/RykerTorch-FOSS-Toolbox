@@ -34,6 +34,26 @@
       countdown.setAttribute('aria-label',values.map((n,i)=>n+' '+units[i].toLowerCase()).join(', ')+' to the recorded deadline');
       cards.forEach((card,i)=>{const value=String(values[i]).padStart(2,'0');if(card.textContent===value)return;card.textContent=value;card.classList.remove('flipping');if(animate()){void card.offsetWidth;card.classList.add('flipping');}});
     }
+    const chatterEnabled=root.hasAttribute('data-astronaut-chatter');
+    const bubble=document.createElement('span');bubble.className='eh-speech';bubble.setAttribute('aria-hidden','true');bubble.hidden=true;person.append(bubble);
+    const sayings=['helppppp','zero gravity, zero braincells','tiny steps. big void.','are we there yet?','brb, orbiting','pls do not feed the black hole','i brought snacks :3','just a lil space guy','this is fine. probably.','uwu, but in space'];
+    let near=false,reactionUntil=0,lastReaction=-Infinity,welcomed=false;
+    const chatAllowed=()=>chatterEnabled&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden&&(visible||docked);
+    function speak(text,distressed=false){bubble.textContent=text;bubble.hidden=false;person.classList.toggle('eh-distressed',distressed);}
+    function chatter(){
+      if(!chatAllowed()){bubble.hidden=true;person.classList.remove('eh-distressed');return;}
+      const now=Date.now();if(now<reactionUntil)return;
+      person.classList.remove('eh-distressed');
+      // Public deterministic time slots: no randomness, IDs, cookies or history.
+      const slot=Math.floor(now/20000),offset=((now%20000)+20000)%20000;
+      if(offset<4500)speak(sayings[((slot*7+3)%sayings.length+sayings.length)%sayings.length]);else bubble.hidden=true;
+    }
+    function cursorReaction(event){
+      if(!chatAllowed()||event.pointerType!=='mouse')return;
+      const rect=person.getBoundingClientRect(),distance=Math.hypot(event.clientX-rect.left-rect.width/2,event.clientY-rect.top-rect.height/2),now=Date.now();
+      if(!near&&distance<95){near=true;if(now-lastReaction>10000){speak('helppppp',true);lastReaction=now;reactionUntil=now+2800;welcomed=true;}}
+      else if(near&&distance>165){near=false;if(welcomed&&now-lastReaction>600){speak('nooo!!!',true);lastReaction=now;reactionUntil=now+2800;welcomed=false;}}
+    }
     const dockEnabled=root.hasAttribute('data-dock-astronaut');
     const homeSlot=document.createComment('Astronaut returns here');person.before(homeSlot);
     let docked=false,petFrame=0,petLast=0,petPhase=0,home={x:40,y:200};
@@ -66,7 +86,7 @@
     }
     const stars=Array.from({length:85},(_,i)=>({x:((i*73+19)%997)/997,y:((i*137+47)%991)/991,r:.5+(i%3)*.35}));
     function animate(){return motion&&!reduced.matches&&!contrast.matches&&visible&&!document.hidden;}
-    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));docking();}
+    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));docking();chatter();}
     function stop(){if(frame)cancelAnimationFrame(frame);frame=0;lastPaint=0;}
     function schedule(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(draw);}
     function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);schedule();}
@@ -122,16 +142,16 @@
       if(moving)schedule();
     }
     window.addEventListener('scroll',()=>{docking();if(visible&&animate())schedule();},{passive:true});
-    window.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
+    window.addEventListener('pointermove',event=>{cursorReaction(event);if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
     for(const media of [reduced,contrast])media.addEventListener('change',()=>{controls();stop();schedule();});
     document.addEventListener('visibilitychange',()=>{stop();stopPet();if(!document.hidden){docking();schedule();}});
     window.addEventListener('resize',docking,{passive:true});
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;stop();if(visible)schedule();});observer.observe(root);
-    new ResizeObserver(resize).observe(root);controls();resize();tick();
+    new ResizeObserver(resize).observe(root);controls();resize();tick();chatter();
     // Keeps deadline text current even with motion disabled; no animation loop when idle.
-    const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(visible&&!document.hidden){tick();schedule();}},1000);
+    const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(!document.hidden){chatter();if(visible){tick();schedule();}}},500);
     const controller={setMotion(enabled){motion=Boolean(enabled);try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();},update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;tick();schedule();}};
     instances.set(root,controller);
     if(root.dataset.configUrl){
