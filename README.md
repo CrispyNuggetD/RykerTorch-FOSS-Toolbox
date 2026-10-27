@@ -57,6 +57,7 @@ More scripts will be added here with a short summary. Each script's directory co
 
 | Project | What it provides |
 | --- | --- |
+| [Event Horizon](web-apps/event-horizon/README.md) | Canvas space scene, pointer-reactive astronaut/profile link and deadline visualization; works without an API, with an optional minimal JSON feed. |
 | [Adaptive pointer](web-apps/adaptive-pointer/README.md) | Copy-and-paste, MIT-licensed CSS/JS for smooth pointer morphing, text-field feedback and accessible fallbacks; includes a demo. |
 
 ### Lectures and tutorials

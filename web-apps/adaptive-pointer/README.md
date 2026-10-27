@@ -75,3 +75,7 @@ This package provides its pointer interaction, not the entire theme/layout.
 Adopters may restyle the dock; keep the off switch readily discoverable and
 retain the MIT notice in redistributed code. A visible source link is provided
 by default, not an additional licence restriction.
+
+For circular controls or illustrated profile links, add
+`data-pointer-shape="circle"` to the actual link/button/summary. The visual
+morph uses a circle while leaving the real click target unchanged.
