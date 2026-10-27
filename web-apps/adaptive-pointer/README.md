@@ -85,3 +85,7 @@ morph uses a circle while leaving the real click target unchanged.
 
 More from Christopher Nah (hnah), 42 Singapore:
 [42 portfolio](https://crispynuggetd.github.io/42_Singapore_SUTD/) · [Main 42 repository & README](https://github.com/CrispyNuggetD/42_Singapore_SUTD).
+
+The toolkit source link preserves same-site navigation; when adopted on another
+origin it opens the toolkit in a new tab with `noopener noreferrer`. Apply the
+same external-link policy to authored page links for no-JavaScript visitors.

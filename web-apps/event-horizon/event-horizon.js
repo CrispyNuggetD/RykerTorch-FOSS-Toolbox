@@ -42,6 +42,7 @@
       person.addEventListener('click',event=>{event.preventDefault();profileMenuOpen?dismiss(true):open();});
       person.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();person.click();}});
       close.addEventListener('click',()=>dismiss(true));
+      for(const link of [publicLink,studentLink])link.addEventListener('click',()=>dismiss(true));
       document.addEventListener('keydown',event=>{if(profileMenuOpen&&event.key==='Escape'){event.preventDefault();dismiss(true);}});
       document.addEventListener('pointerdown',event=>{if(profileMenuOpen&&!panel.contains(event.target)&&!person.contains(event.target))dismiss();});
       document.addEventListener('focusin',event=>{if(profileMenuOpen&&!panel.contains(event.target)&&event.target!==person)dismiss();});
@@ -127,7 +128,7 @@
       if(shouldDock!==docked){
         const focused=document.activeElement===person;
         docked=shouldDock;person.classList.toggle('eh-docked',docked);
-        if(docked){document.body.append(person);person.title=publicUrl?'Your travelling astronaut · choose a profile':'Your travelling astronaut · open Intra profile';}
+        if(docked){document.body.append(person);person.style.left=Math.max(42,Math.min(innerWidth-42,box.left+home.x))+'px';person.style.top='48px';person.title=publicUrl?'Your travelling astronaut · choose a profile':'Your travelling astronaut · open Intra profile';}
         else{homeSlot.after(person);person.removeAttribute('title');person.style.left=home.x+'px';person.style.top=home.y+'px';}
         if(focused)person.focus({preventScroll:true});
       }
