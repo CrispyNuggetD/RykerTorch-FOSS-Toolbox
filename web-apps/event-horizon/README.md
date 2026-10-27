@@ -172,3 +172,9 @@ destination and put its student URL in `data-profile-url`. Add explicit public
 and student links to the HTML for no-JS visitors, also with `target="_blank"`
 and `rel="noopener noreferrer"`. The chooser supports keyboard/touch, Escape,
 outside dismissal and stays within the viewport while docked.
+
+Astronaut arms use front-layer curved SVG sleeves and mitten endpoints. Their
+elbows/wrists combine several deterministic sine/cosine waves for a chaotic
+flail while retaining cursor-directed reach. Geometry updates reuse the existing
+30fps scene/pet loop; no extra animation loop, randomness or tracking is added.
+Motion off/system preferences restore a still relaxed pose.

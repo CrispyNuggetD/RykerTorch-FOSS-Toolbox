@@ -73,13 +73,37 @@
     const chatAllowed=()=>chatterEnabled&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden&&(visible||docked);
     const finePointer=matchMedia('(any-pointer: fine)');
     const hint=document.createElement('span');hint.className='eh-interaction-hint';hint.setAttribute('aria-hidden','true');hint.textContent='move your cursor closer ↗';person.append(hint);
-    // Separate the waving arm so the profile target and body stay still.
-    const limbs=person.querySelector('svg > path');
-    if(limbs?.getAttribute('d')?.includes('M44 37l8 8')){limbs.setAttribute('d',limbs.getAttribute('d').replace('M44 37l8 8',''));const arm=document.createElementNS('http://www.w3.org/2000/svg','path');arm.setAttribute('d','M44 37l8 8');arm.setAttribute('stroke','currentColor');arm.setAttribute('stroke-width','5');arm.setAttribute('stroke-linecap','round');arm.classList.add('eh-wave-arm');limbs.after(arm);}
-    if(limbs?.getAttribute('d')?.includes('M20 37 12 45')){
-      limbs.setAttribute('d',limbs.getAttribute('d').replace('M20 37 12 45',''));
-      const arm=document.createElementNS('http://www.w3.org/2000/svg','path');arm.setAttribute('d','M20 37 12 45');arm.setAttribute('stroke','currentColor');arm.setAttribute('stroke-width','5');arm.setAttribute('stroke-linecap','round');arm.classList.add('eh-left-arm');limbs.after(arm);
-      const marks=document.createElementNS('http://www.w3.org/2000/svg','path');marks.setAttribute('d','M5 20 1 17M4 29 0 29M59 20 63 17M60 29 64 29');marks.setAttribute('stroke','currentColor');marks.setAttribute('stroke-width','1.3');marks.setAttribute('stroke-linecap','round');marks.classList.add('eh-panic-lines');person.querySelector('svg').append(marks);
+    // Draw flexible sleeves and mittens last, in front of the suit and helmet.
+    const svg=person.querySelector('svg'),limbs=svg.querySelector('path');
+    if(limbs)limbs.setAttribute('d',(limbs.getAttribute('d')||'').replace('M44 37l8 8','').replace('M20 37 12 45',''));
+    const ns='http://www.w3.org/2000/svg';
+    function element(tag,attributes){const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attributes))node.setAttribute(key,value);return node;}
+    const arms=[{x:20,y:37,side:-1},{x:44,y:37,side:1}].map(arm=>{
+      const group=element('g',{class:'eh-arm-rig '+(arm.side<0?'eh-left-arm':'eh-wave-arm')});
+      const outline=element('path',{fill:'none',stroke:'#29495a','stroke-width':'6','stroke-linecap':'round','stroke-linejoin':'round'});
+      const sleeve=element('path',{fill:'none',stroke:'#dcefe8','stroke-width':'4','stroke-linecap':'round','stroke-linejoin':'round'});
+      const hand=element('circle',{r:'2.7',fill:'#a8e6cf',stroke:'#29495a','stroke-width':'.8'});group.append(outline,sleeve,hand);svg.append(group);return {...arm,outline,sleeve,hand};
+    });
+    let cursorPosition=null;
+    function updateArms(now,moving){
+      const mood=moving?person.dataset.ehMood:'quiet',time=now/1000;
+      let pointer=null;
+      if(cursorPosition&&moving){const matrix=svg.getScreenCTM();if(matrix)pointer=new DOMPoint(cursorPosition.x,cursorPosition.y).matrixTransform(matrix.inverse());}
+      for(const arm of arms){
+        const side=arm.side;let angle=side<0?Math.PI*.75:Math.PI*.25;
+        const reaching=pointer&&(mood==='near'||mood==='depart');
+        if(reaching)angle=Math.atan2(pointer.y-arm.y,pointer.x-arm.x);
+        if(mood==='beckon'&&side>0)angle=-.8+Math.sin(time*7)*.5;
+        const panic=mood==='depart',noise=panic?Math.sin(time*15.7+side)*.22+Math.cos(time*23.3-side)*.12:0;
+        angle+=noise;
+        const ux=Math.cos(angle),uy=Math.sin(angle),px=-uy,py=ux;
+        const bend=panic?Math.sin(time*19.1+side*1.7)*5+Math.cos(time*11.3-side)*2:side*2.5;
+        const length=reaching?16+(panic?Math.cos(time*17.7+side)*2:0):12;
+        const ex=arm.x+ux*7+px*bend,ey=arm.y+uy*7+py*bend;
+        const hx=arm.x+ux*length,hy=arm.y+uy*length;
+        const d=`M ${arm.x} ${arm.y} Q ${arm.x+ux*3+px*bend} ${arm.y+uy*3+py*bend} ${ex} ${ey} Q ${hx-ux*4+px*bend*.4} ${hy-uy*4+py*bend*.4} ${hx} ${hy}`;
+        arm.outline.setAttribute('d',d);arm.sleeve.setAttribute('d',d);arm.hand.setAttribute('cx',hx);arm.hand.setAttribute('cy',hy);
+      }
     }
     function speak(text,mood='idle'){bubble.textContent=text;bubble.hidden=false;person.dataset.ehMood=mood;person.classList.toggle('eh-distressed',mood==='depart');}
     function react(text,mood){reactionUntil=performance.now()+3000;speak(text,mood);}
@@ -113,11 +137,11 @@
     const homeSlot=document.createComment('Astronaut returns here');person.before(homeSlot);
     let docked=false,petFrame=0,petLast=0,petPhase=0,home={x:40,y:200};
     function stopPet(){if(petFrame)cancelAnimationFrame(petFrame);petFrame=0;petLast=0;}
-    function dockPosition(now=0){
+    function dockPosition(now=performance.now()){
       petFrame=0;if(!docked||document.hidden)return;
       const moving=motion&&!reduced.matches&&!contrast.matches;
       if(moving&&petLast&&now-petLast<33){petFrame=requestAnimationFrame(dockPosition);return;}
-      const dt=petLast?Math.min(70,now-petLast):33;petLast=now;if(moving)petPhase+=dt*.001;
+      const dt=petLast?Math.min(70,now-petLast):33;petLast=now;if(moving)petPhase+=dt*.001;updateArms(now,moving);
       if(!profileMenuOpen&&!person.matches(':hover,:focus-within')){
         const box=root.getBoundingClientRect();
         person.style.left=Math.max(42,Math.min(innerWidth-42,box.left+home.x))+'px';
@@ -157,6 +181,7 @@
       const dt=lastPaint?Math.min(70,now-lastPaint):32;lastPaint=now;if(moving){phase+=dt*.00012;arrival=Math.min(1,arrival+dt/1800);}
       mouse.x+=(target.x-mouse.x)*.12;mouse.y+=(target.y-mouse.y)*.12;
       if(!moving){mouse={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');}
+      updateArms(now,moving);
       const epoch=Date.now();const valid=Number.isFinite(deadline);const windowStart=Number.isFinite(start)&&start<deadline?start:deadline-90*86400000;
       const progress=valid?Math.max(0,Math.min(1,(epoch-windowStart)/(deadline-windowStart))):.35;
       const hx=width*.70,hy=height*(width<520?.49:.52),radius=Math.min(width*.115,55);
@@ -203,12 +228,7 @@
       if(moving)schedule();
     }
     window.addEventListener('scroll',()=>{docking();if(visible&&animate())schedule();},{passive:true});
-    window.addEventListener('pointermove',event=>{cursorReaction(event);if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();
-      const svg=person.querySelector('svg').getBoundingClientRect();
-      const cursorX=(event.clientX-svg.left)*64/svg.width,cursorY=(event.clientY-svg.top)*64/svg.height;
-      const angle=(x,y)=>Math.atan2(cursorY-y,cursorX-x)*180/Math.PI;
-      person.style.setProperty('--eh-reach-left',(angle(20,37)-135)+'deg');
-      person.style.setProperty('--eh-reach-right',(angle(44,37)-45)+'deg');
+    window.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')cursorPosition={x:event.clientX,y:event.clientY};cursorReaction(event);if(event.pointerType!=='mouse'||!(animate()||(docked&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden)))return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();
       person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
@@ -216,7 +236,7 @@
     document.addEventListener('visibilitychange',()=>{stop();stopPet();if(!document.hidden){docking();schedule();}});
     window.addEventListener('resize',docking,{passive:true});
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;stop();if(visible)schedule();});observer.observe(root);
-    new ResizeObserver(resize).observe(root);controls();resize();tick();chatter();
+    new ResizeObserver(resize).observe(root);controls();resize();tick();chatter();updateArms(performance.now(),false);
     // Keeps deadline text current even with motion disabled; no animation loop when idle.
     const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(!document.hidden){chatter();if(visible){tick();schedule();}}},500);
     const controller={setMotion(enabled){motion=Boolean(enabled);try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();},update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;tick();schedule();}};

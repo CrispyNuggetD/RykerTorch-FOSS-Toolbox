@@ -33,3 +33,6 @@
 
 /* Both hands aim at the cursor; frantic strokes wobble around that direction. */
 .eh-person[data-eh-mood="near"] .eh-left-arm{transform:rotate(var(--eh-reach-left,0deg))}.eh-person[data-eh-mood="near"] .eh-wave-arm{transform:rotate(var(--eh-reach-right,0deg))}.eh-person[data-eh-mood="depart"] .eh-left-arm{animation:eh-reach-left .14s ease-in-out infinite alternate}.eh-person[data-eh-mood="depart"] .eh-wave-arm{animation:eh-reach-right .14s ease-in-out infinite alternate}@keyframes eh-reach-left{from{transform:rotate(calc(var(--eh-reach-left,0deg) - 16deg))}to{transform:rotate(calc(var(--eh-reach-left,0deg) + 16deg))}}@keyframes eh-reach-right{from{transform:rotate(calc(var(--eh-reach-right,0deg) - 16deg))}to{transform:rotate(calc(var(--eh-reach-right,0deg) + 16deg))}}
+
+/* Joint geometry is animated in SVG coordinates; no rigid-stick rotation. */
+.eh-person .eh-arm-rig{animation:none!important;transform:none!important;pointer-events:none}
