@@ -22,17 +22,28 @@
     const canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');root.prepend(canvas);
     const ctx=canvas.getContext('2d');if(!ctx)return;root.classList.add('enhanced');
     const button=document.createElement('button');button.type='button';root.querySelector('.eh-controls')?.append(button);
-    let frame=0,lastPaint=0,lastText=0,visible=true,width=1,height=1,phase=0,mouse={x:0,y:0},target={x:0,y:0};
+    let frame=0,lastPaint=0,lastText=0,visible=true,width=1,height=1,phase=0,arrival=0,scrollDrift=0,mouse={x:0,y:0},target={x:0,y:0};
+    const countdown=document.createElement('div');countdown.className='eh-countdown';countdown.setAttribute('role','timer');countdown.setAttribute('aria-live','off');
+    root.querySelector('.eh-countdown')?.remove();root.querySelector('.eh-copy')?.append(countdown);
+    const units=['Days','Hours','Minutes','Seconds'];
+    const cards=units.map(label=>{const card=document.createElement('span');card.className='eh-flip-unit';const face=document.createElement('strong');face.className='eh-flip-face';face.textContent='00';const caption=document.createElement('span');caption.textContent=label;card.append(face,caption);countdown.append(card);return face;});
+    function tick(){
+      if(!Number.isFinite(deadline)){countdown.hidden=true;return;}countdown.hidden=false;
+      const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+      const values=[Math.floor(seconds/86400),Math.floor(seconds/3600)%24,Math.floor(seconds/60)%60,seconds%60];
+      countdown.setAttribute('aria-label',values.map((n,i)=>n+' '+units[i].toLowerCase()).join(', ')+' to the recorded deadline');
+      cards.forEach((card,i)=>{const value=String(values[i]).padStart(2,'0');if(card.textContent===value)return;card.textContent=value;card.classList.remove('flipping');if(animate()){void card.offsetWidth;card.classList.add('flipping');}});
+    }
     const stars=Array.from({length:85},(_,i)=>({x:((i*73+19)%997)/997,y:((i*137+47)%991)/991,r:.5+(i%3)*.35}));
     function animate(){return motion&&!reduced.matches&&!contrast.matches&&visible&&!document.hidden;}
-    function controls(){button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));}
+    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));}
     function stop(){if(frame)cancelAnimationFrame(frame);frame=0;lastPaint=0;}
     function schedule(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(draw);}
     function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);schedule();}
     function draw(now){
       frame=0;if(!visible||document.hidden)return;
       const moving=animate();if(moving&&lastPaint&&now-lastPaint<32){schedule();return;}
-      const dt=lastPaint?Math.min(70,now-lastPaint):32;lastPaint=now;if(moving)phase+=dt*.00012;
+      const dt=lastPaint?Math.min(70,now-lastPaint):32;lastPaint=now;if(moving){phase+=dt*.00012;arrival=Math.min(1,arrival+dt/1800);}
       mouse.x+=(target.x-mouse.x)*.12;mouse.y+=(target.y-mouse.y)*.12;
       if(!moving){mouse={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');}
       const epoch=Date.now();const valid=Number.isFinite(deadline);const windowStart=Number.isFinite(start)&&start<deadline?start:deadline-90*86400000;
@@ -47,21 +58,33 @@
       ctx.fillStyle='#04101b';ctx.beginPath();ctx.arc(hx,hy,radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a8e6cf99';ctx.lineWidth=1.5;ctx.stroke();
       ctx.font='10px system-ui';ctx.fillStyle='#a9c1cf';ctx.textAlign='center';ctx.fillText('EVENT HORIZON',hx,hy+radius+28);
       const horizon=root.querySelector('.eh-horizon-info');if(horizon){horizon.style.left=hx+'px';horizon.style.top=hy+'px';horizon.style.width=radius*2+'px';horizon.style.height=radius*2+'px';}
-      // Position depends on time, never chases the pointer. Freeze under hover/focus.
-      if(!person.matches(':hover,:focus-within')){const distance=radius+35+(1-progress)*Math.min(width*.26,170);const px=Math.max(40,hx-distance),py=hy-18;person.style.left=px+'px';person.style.top=py+'px';}
+      // Time determines distance; scroll adds a bounded drift, never changes deadline progress.
+      const box=root.getBoundingClientRect();
+      const desiredScroll=moving?Math.max(-1,Math.min(1,-box.top/Math.max(1,height))):0;
+      scrollDrift=moving?scrollDrift+(desiredScroll-scrollDrift)*.08:0;
+      if(!person.matches(':hover,:focus-within')){
+        const distance=radius+35+(1-progress)*Math.min(width*.26,170);
+        const settled=Math.max(40,hx-distance),ease=1-Math.pow(1-arrival,3);
+        const enter=moving?(1-ease)*Math.min(width*.26,160):0;
+        const bob=moving?Math.sin(phase*4)*7:0,drift=moving?Math.sin(phase*2.6)*3:0;
+        person.style.left=Math.max(36,Math.min(hx-radius-34,settled-enter+scrollDrift*24+drift))+'px';
+        person.style.top=(hy-18+bob-scrollDrift*22)+'px';
+        person.style.setProperty('--eh-tilt',moving?(Math.sin(phase*3)*4-scrollDrift*8)+'deg':'0deg');
+      }
       if(!lastText||now-lastText>1000){lastText=now;if(valid){const left=deadline-epoch;const days=Math.floor(Math.abs(left)/86400000),hours=Math.floor(Math.abs(left)%86400000/3600000);status.textContent=left>=0?`${days}d ${hours}h to the recorded horizon.`:'Recorded horizon date reached; check your current Intra status.';}else status.textContent='Set a deadline to place your journey in time.';const preview=root.querySelector('.eh-horizon-preview');if(preview)preview.textContent=valid?'Recorded horizon: '+new Date(deadline).toLocaleString('en-SG',{timeZone:'Asia/Singapore'})+' SGT · click for details':'Set a recorded deadline';const note=root.querySelector('.eh-source-note');if(note&&Number.isFinite(observed))note.textContent='Snapshot: '+new Date(observed).toLocaleDateString('en-SG')+(epoch-observed>3*86400000?' · refresh needed':'')+' · not a live eligibility check.';}
       if(moving)schedule();
     }
+    window.addEventListener('scroll',()=>{if(visible&&animate())schedule();},{passive:true});
     root.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!animate())return;const box=root.getBoundingClientRect();target={x:(event.clientX-box.left)/width-.5,y:(event.clientY-box.top)/height-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
     root.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
     for(const media of [reduced,contrast])media.addEventListener('change',()=>{controls();stop();schedule();});
     document.addEventListener('visibilitychange',()=>{stop();if(!document.hidden)schedule();});
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;stop();if(visible)schedule();});observer.observe(root);
-    new ResizeObserver(resize).observe(root);controls();resize();
+    new ResizeObserver(resize).observe(root);controls();resize();tick();
     // Keeps deadline text current even with motion disabled; no animation loop when idle.
-    const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(visible&&!document.hidden)schedule();},60000);
-    const controller={update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;schedule();}};
+    const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(visible&&!document.hidden){tick();schedule();}},1000);
+    const controller={update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;tick();schedule();}};
     instances.set(root,controller);
     if(root.dataset.configUrl){
       try{const url=new URL(root.dataset.configUrl,location.href);if(url.origin!==location.origin)throw Error('Configuration must be same-origin');

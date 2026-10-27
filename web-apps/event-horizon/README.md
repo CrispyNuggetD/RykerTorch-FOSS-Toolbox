@@ -79,8 +79,12 @@ horizon affects the picture, never anyone’s actual 42 standing.
 - The astronaut is a real keyboard-focusable link; horizon info is native
   details/summary. Optional [Adaptive Pointer](../adaptive-pointer/README.md)
   handles these controls like ordinary links/buttons. A halo provides hover feedback.
-- Pointer movement affects eyes/parallax, not the clickable target’s location.
-  The student’s position is time-based and held still while hovered/focused.
+- Pointer movement affects eyes/parallax. The student arrives from the left, then
+  floats gently with bounded scroll drift. Deadline time sets the underlying
+  distance; scrolling never changes the countdown. Hover/focus holds the link still.
+- A classic flip-card countdown shows days, hours, minutes and seconds. Only
+  changed values animate; accessible timer text avoids per-second announcements.
+  Motion off/reduced motion leaves a static astronaut and plain updating numbers.
 - Motion can be disabled and that browser-local preference persists. Reduced
   motion and forced colours disable it. Canvas is decorative and aria-hidden.
 - Rendering is capped near 30 fps and stops in hidden tabs/offscreen scenes;
