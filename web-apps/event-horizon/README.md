@@ -145,8 +145,11 @@ Add `data-astronaut-chatter` for ten predefined silly speech bubbles. The
 20-second slot is `floor(Date.now()/20000)`; `(slot*7+3) mod 10` picks the
 phrase, visible for the first 4.5 seconds. Refreshing does not reseed it; there
 is no history, identity seed, storage or reporting. Clock changes alter the
-cycle. Mouse proximity uses 95/165px hysteresis and rate-limited local reactions
-(“helppppp” nearby, “nooo!!!” on departure). No pointer coordinates are retained.
+cycle. Mouse reactions are separate from the Unix cycle: an initial wave/beckoning
+hint, a 210px approach zone, 90px greeting and 155px departure threshold.
+Departures and returns respond immediately; lingering close by explains the
+profile link. Hysteresis avoids edge jitter without swallowing quick reactions.
+Only ephemeral proximity state exists; no pointer history is stored.
 Bubbles are silent, pointer-transparent, excluded from the profile link’s
 accessible name and screen-reader live announcements, and disabled by shared
 motion off/reduced motion/forced colours. They follow the docked link too.

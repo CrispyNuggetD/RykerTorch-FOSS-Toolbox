@@ -36,23 +36,41 @@
     }
     const chatterEnabled=root.hasAttribute('data-astronaut-chatter');
     const bubble=document.createElement('span');bubble.className='eh-speech';bubble.setAttribute('aria-hidden','true');bubble.hidden=true;person.append(bubble);
-    const sayings=['helppppp','zero gravity, zero braincells','tiny steps. big void.','are we there yet?','brb, orbiting','pls do not feed the black hole','i brought snacks :3','just a lil space guy','this is fine. probably.','uwu, but in space'];
-    let near=false,reactionUntil=0,lastReaction=-Infinity,welcomed=false;
+    const sayings=['send snacks, not segfaults','zero gravity, zero braincells','tiny steps. big void.','are we there yet?','brb, orbiting','pls do not feed the black hole','i brought snacks :3','just a lil space guy','this is fine. probably.','uwu, but in space'];
+    let zone='far',reactionUntil=0,engaged=false,departed=false,nearSince=0,dwellHint=false,discoveryStart=0;
     const chatAllowed=()=>chatterEnabled&&motion&&!reduced.matches&&!contrast.matches&&!document.hidden&&(visible||docked);
-    function speak(text,distressed=false){bubble.textContent=text;bubble.hidden=false;person.classList.toggle('eh-distressed',distressed);}
+    const finePointer=matchMedia('(any-pointer: fine)');
+    const hint=document.createElement('span');hint.className='eh-interaction-hint';hint.setAttribute('aria-hidden','true');hint.textContent='move your cursor closer ↗';person.append(hint);
+    // Separate the waving arm so the profile target and body stay still.
+    const limbs=person.querySelector('svg > path');
+    if(limbs?.getAttribute('d')?.includes('M44 37l8 8')){limbs.setAttribute('d',limbs.getAttribute('d').replace('M44 37l8 8',''));const arm=document.createElementNS('http://www.w3.org/2000/svg','path');arm.setAttribute('d','M44 37l8 8');arm.setAttribute('stroke','currentColor');arm.setAttribute('stroke-width','5');arm.setAttribute('stroke-linecap','round');arm.classList.add('eh-wave-arm');limbs.after(arm);}
+    function speak(text,mood='idle'){bubble.textContent=text;bubble.hidden=false;person.dataset.ehMood=mood;person.classList.toggle('eh-distressed',mood==='depart');}
+    function react(text,mood){reactionUntil=performance.now()+3000;speak(text,mood);}
     function chatter(){
-      if(!chatAllowed()){bubble.hidden=true;person.classList.remove('eh-distressed');return;}
-      const now=Date.now();if(now<reactionUntil)return;
+      hint.hidden=!chatAllowed()||engaged||!finePointer.matches;
+      if(!chatAllowed()){bubble.hidden=true;person.classList.remove('eh-distressed');person.dataset.ehMood='quiet';return;}
+      const clock=performance.now();if(!discoveryStart)discoveryStart=clock;
+      if(zone==='near'&&clock-nearSince>1300&&!dwellHint){dwellHint=true;react('click me? my Intra is in here :3','near');}
+      if(clock<reactionUntil)return;
       person.classList.remove('eh-distressed');
-      // Public deterministic time slots: no randomness, IDs, cookies or history.
-      const slot=Math.floor(now/20000),offset=((now%20000)+20000)%20000;
-      if(offset<4500)speak(sayings[((slot*7+3)%sayings.length+sayings.length)%sayings.length]);else bubble.hidden=true;
+      if(!engaged&&finePointer.matches){
+        const elapsed=clock-discoveryStart;
+        if(elapsed>1800&&elapsed<5800){speak('psst… yes, you there 👀','beckon');return;}
+        if(elapsed>=5800&&elapsed<10500){speak('bring your cursor closer?','beckon');return;}
+        if(elapsed%30000<4500&&elapsed>10500){speak('tiny astronaut requesting a cursor 🥺','beckon');return;}
+      }
+      if(zone==='near'){bubble.hidden=true;person.dataset.ehMood='near';return;}
+      // Only idle chatter uses Unix slots; reactions are immediate session events.
+      const now=Date.now(),slot=Math.floor(now/20000),offset=((now%20000)+20000)%20000;
+      if(offset<4500)speak(sayings[((slot*7+3)%sayings.length+sayings.length)%sayings.length]);else{bubble.hidden=true;person.dataset.ehMood='idle';}
     }
     function cursorReaction(event){
       if(!chatAllowed()||event.pointerType!=='mouse')return;
-      const rect=person.getBoundingClientRect(),distance=Math.hypot(event.clientX-rect.left-rect.width/2,event.clientY-rect.top-rect.height/2),now=Date.now();
-      if(!near&&distance<95){near=true;if(now-lastReaction>10000){speak('helppppp',true);lastReaction=now;reactionUntil=now+2800;welcomed=true;}}
-      else if(near&&distance>165){near=false;if(welcomed&&now-lastReaction>600){speak('nooo!!!',true);lastReaction=now;reactionUntil=now+2800;welcomed=false;}}
+      const rect=person.getBoundingClientRect(),distance=Math.hypot(event.clientX-rect.left-rect.width/2,event.clientY-rect.top-rect.height/2);
+      if(zone==='near'&&distance>155){zone='far';departed=true;nearSince=0;react('nooo!!! come baaack 🥺','depart');}
+      else if(zone!=='near'&&distance<90){zone='near';nearSince=performance.now();dwellHint=false;engaged=true;hint.hidden=true;react(departed?'you came back!! :3':'you found me!! helppppp','near');}
+      else if(zone==='far'&&distance<210){zone='approach';if(!engaged)react('yes, YOUR cursor! closer…','beckon');}
+      else if(zone==='approach'&&distance>260){zone='far';}
     }
     const dockEnabled=root.hasAttribute('data-dock-astronaut');
     const homeSlot=document.createComment('Astronaut returns here');person.before(homeSlot);
