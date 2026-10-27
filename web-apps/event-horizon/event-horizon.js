@@ -76,6 +76,11 @@
     // Separate the waving arm so the profile target and body stay still.
     const limbs=person.querySelector('svg > path');
     if(limbs?.getAttribute('d')?.includes('M44 37l8 8')){limbs.setAttribute('d',limbs.getAttribute('d').replace('M44 37l8 8',''));const arm=document.createElementNS('http://www.w3.org/2000/svg','path');arm.setAttribute('d','M44 37l8 8');arm.setAttribute('stroke','currentColor');arm.setAttribute('stroke-width','5');arm.setAttribute('stroke-linecap','round');arm.classList.add('eh-wave-arm');limbs.after(arm);}
+    if(limbs?.getAttribute('d')?.includes('M20 37 12 45')){
+      limbs.setAttribute('d',limbs.getAttribute('d').replace('M20 37 12 45',''));
+      const arm=document.createElementNS('http://www.w3.org/2000/svg','path');arm.setAttribute('d','M20 37 12 45');arm.setAttribute('stroke','currentColor');arm.setAttribute('stroke-width','5');arm.setAttribute('stroke-linecap','round');arm.classList.add('eh-left-arm');limbs.after(arm);
+      const marks=document.createElementNS('http://www.w3.org/2000/svg','path');marks.setAttribute('d','M5 20 1 17M4 29 0 29M59 20 63 17M60 29 64 29');marks.setAttribute('stroke','currentColor');marks.setAttribute('stroke-width','1.3');marks.setAttribute('stroke-linecap','round');marks.classList.add('eh-panic-lines');person.querySelector('svg').append(marks);
+    }
     function speak(text,mood='idle'){bubble.textContent=text;bubble.hidden=false;person.dataset.ehMood=mood;person.classList.toggle('eh-distressed',mood==='depart');}
     function react(text,mood){reactionUntil=performance.now()+3000;speak(text,mood);}
     function chatter(){

@@ -149,6 +149,8 @@ cycle. Mouse reactions are separate from the Unix cycle: an initial wave/beckoni
 hint, a 210px approach zone, 90px greeting and 155px departure threshold.
 Departures and returns respond immediately; lingering close by explains the
 profile link. Hysteresis avoids edge jitter without swallowing quick reactions.
+Departure adds a brief two-arm frantic flail, a tiny illustration wiggle and
+comic motion strokes; the link hitbox and speech bubble do not shake.
 Only ephemeral proximity state exists; no pointer history is stored.
 Bubbles are silent, pointer-transparent, excluded from the profile link’s
 accessible name and screen-reader live announcements, and disabled by shared
