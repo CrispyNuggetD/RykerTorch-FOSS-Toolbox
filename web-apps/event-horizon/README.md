@@ -150,7 +150,7 @@ hint, a 210px approach zone, 90px greeting and 155px departure threshold.
 Departures and returns respond immediately; lingering close by explains the
 profile link. Hysteresis avoids edge jitter without swallowing quick reactions.
 Both hands reach toward the mouse while nearby. Departure adds a brief
-two-arm frantic flail aimed toward the departing mouse, a tiny illustration wiggle and
+two-arm frantic flail aimed toward the departing mouse, a cursor-directed forward lean and
 comic motion strokes; the link hitbox and speech bubble do not shake.
 Only ephemeral proximity state exists; no pointer history is stored.
 Bubbles are silent, pointer-transparent, excluded from the profile link’s
@@ -175,6 +175,7 @@ outside dismissal and stays within the viewport while docked.
 
 Astronaut arms use front-layer curved SVG sleeves and mitten endpoints. Their
 elbows/wrists combine several deterministic sine/cosine waves for a chaotic
-flail while retaining cursor-directed reach. Geometry updates reuse the existing
+flail while retaining cursor-directed reach. The body pivots from its feet toward the cursor while reaching; it no longer
+rocks side to side during distress. Geometry updates reuse the existing
 30fps scene/pet loop; no extra animation loop, randomness or tracking is added.
 Motion off/system preferences restore a still relaxed pose.

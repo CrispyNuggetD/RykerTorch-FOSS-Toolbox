@@ -87,6 +87,14 @@
     let cursorPosition=null;
     function updateArms(now,moving){
       const mood=moving?person.dataset.ehMood:'quiet',time=now/1000;
+      const reachingBody=cursorPosition&&moving&&(mood==='near'||mood==='depart');
+      const rect=person.getBoundingClientRect();
+      const reachX=reachingBody?Math.max(-1,Math.min(1,(cursorPosition.x-rect.left-rect.width/2)/130)):0;
+      const reachY=reachingBody?Math.max(-1,Math.min(1,(cursorPosition.y-rect.top-rect.height/2)/180)):0;
+      const effort=mood==='depart'?1:.65;
+      person.style.setProperty('--eh-reach-lean',reachX*27*effort+'deg');
+      person.style.setProperty('--eh-reach-x',reachX*3*effort+'px');
+      person.style.setProperty('--eh-reach-y',reachY*1.5*effort+'px');
       let pointer=null;
       if(cursorPosition&&moving){const matrix=svg.getScreenCTM();if(matrix)pointer=new DOMPoint(cursorPosition.x,cursorPosition.y).matrixTransform(matrix.inverse());}
       for(const arm of arms){
