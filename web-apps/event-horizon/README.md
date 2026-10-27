@@ -146,7 +146,7 @@ Add `data-astronaut-chatter` for ten predefined silly speech bubbles. The
 phrase, visible for the first 4.5 seconds. Refreshing does not reseed it; there
 is no history, identity seed, storage or reporting. Clock changes alter the
 cycle. Mouse reactions are separate from the Unix cycle: an initial wave/beckoning
-hint, a 210px approach zone, 90px greeting and 155px departure threshold.
+hint, a 210px approach zone, 55px greeting and 75px departure threshold.
 Departures and returns respond immediately; lingering close by explains the
 profile link. Hysteresis avoids edge jitter without swallowing quick reactions.
 Both hands reach toward the mouse while nearby. Departure adds a brief

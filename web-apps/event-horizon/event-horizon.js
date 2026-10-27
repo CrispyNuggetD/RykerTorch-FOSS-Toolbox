@@ -141,8 +141,8 @@
     function cursorReaction(event){
       if(!chatAllowed()||event.pointerType!=='mouse')return;
       const rect=person.getBoundingClientRect(),distance=Math.hypot(event.clientX-rect.left-rect.width/2,event.clientY-rect.top-rect.height/2);
-      if(zone==='near'&&distance>155){zone='far';departed=true;nearSince=0;react('nooo!!! come baaack 🥺','depart');}
-      else if(zone!=='near'&&distance<90){zone='near';nearSince=performance.now();dwellHint=false;engaged=true;hint.hidden=true;react(departed?'you came back!! :3':'you found me!! helppppp','near');}
+      if(zone==='near'&&distance>75){zone='far';departed=true;nearSince=0;react('nooo!!! come baaack 🥺','depart');}
+      else if(zone!=='near'&&distance<55){zone='near';nearSince=performance.now();dwellHint=false;engaged=true;hint.hidden=true;react(departed?'you came back!! :3':'you found me!! helppppp','near');}
       else if(zone==='far'&&distance<210){zone='approach';if(!engaged)react('yes, YOUR cursor! closer…','beckon');}
       else if(zone==='approach'&&distance>260){zone='far';}
     }
