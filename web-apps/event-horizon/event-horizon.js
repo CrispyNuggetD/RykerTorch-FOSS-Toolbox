@@ -36,7 +36,7 @@
     }
     const stars=Array.from({length:85},(_,i)=>({x:((i*73+19)%997)/997,y:((i*137+47)%991)/991,r:.5+(i%3)*.35}));
     function animate(){return motion&&!reduced.matches&&!contrast.matches&&visible&&!document.hidden;}
-    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));}
+    function controls(){root.dataset.ehMotion=motion&&!reduced.matches&&!contrast.matches?'on':'off';button.disabled=reduced.matches||contrast.matches;button.textContent='Motion: '+(button.disabled?'System default':motion?'On':'Off');button.setAttribute('aria-pressed',String(motion&&!button.disabled));window.dispatchEvent(new CustomEvent('event-horizon-motion',{detail:{enabled:motion&&!button.disabled}}));}
     function stop(){if(frame)cancelAnimationFrame(frame);frame=0;lastPaint=0;}
     function schedule(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(draw);}
     function resize(){const box=root.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);schedule();}
@@ -50,7 +50,7 @@
       const progress=valid?Math.max(0,Math.min(1,(epoch-windowStart)/(deadline-windowStart))):.35;
       const hx=width*.70,hy=height*(width<520?.68:.51),radius=Math.min(width*.115,55);
       ctx.clearRect(0,0,width,height);
-      for(const s of stars){const x=s.x*width+mouse.x*(s.r*4),y=s.y*height+mouse.y*(s.r*3);ctx.fillStyle=`rgba(208,234,246,${.25+s.r*.22})`;ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill();}
+      for(const s of stars){const x=s.x*width+mouse.x*(s.r*38),y=((s.y*height+mouse.y*(s.r*28)-scrollY*(.035+s.r*.045))%height+height)%height;ctx.fillStyle=`rgba(208,234,246,${.25+s.r*.22})`;ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill();}
       const glow=ctx.createRadialGradient(hx,hy,radius*.7,hx,hy,radius*2.6);glow.addColorStop(0,'#91c9c94d');glow.addColorStop(.5,'#4d8c9b22');glow.addColorStop(1,'#4d8c9b00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(hx,hy,radius*2.6,0,Math.PI*2);ctx.fill();
       ctx.save();ctx.translate(hx,hy);ctx.rotate(-.34);
       for(let i=0;i<3;i++){ctx.strokeStyle=`rgba(168,230,207,${.12+i*.11})`;ctx.lineWidth=1+i*.8;ctx.beginPath();ctx.ellipse(0,0,radius*(1.7+i*.18),radius*(.38+i*.07),0,0,Math.PI*2);ctx.stroke();}
@@ -75,8 +75,8 @@
       if(moving)schedule();
     }
     window.addEventListener('scroll',()=>{if(visible&&animate())schedule();},{passive:true});
-    root.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!animate())return;const box=root.getBoundingClientRect();target={x:(event.clientX-box.left)/width-.5,y:(event.clientY-box.top)/height-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
-    root.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
+    window.addEventListener('pointermove',event=>{if(event.pointerType!=='mouse'||!animate())return;target={x:event.clientX/Math.max(1,innerWidth)-.5,y:event.clientY/Math.max(1,innerHeight)-.5};const b=person.getBoundingClientRect();person.style.setProperty('--eh-eye-x',Math.max(-2,Math.min(2,(event.clientX-b.left-b.width/2)/90))+'px');person.style.setProperty('--eh-eye-y',Math.max(-1.5,Math.min(1.5,(event.clientY-b.top-b.height/2)/90))+'px');schedule();},{passive:true});
+    document.documentElement.addEventListener('pointerleave',()=>{target={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');});
     button.addEventListener('click',()=>{motion=!motion;try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();});
     for(const media of [reduced,contrast])media.addEventListener('change',()=>{controls();stop();schedule();});
     document.addEventListener('visibilitychange',()=>{stop();if(!document.hidden)schedule();});
@@ -84,7 +84,7 @@
     new ResizeObserver(resize).observe(root);controls();resize();tick();
     // Keeps deadline text current even with motion disabled; no animation loop when idle.
     const timer=setInterval(()=>{if(!root.isConnected){clearInterval(timer);observer.disconnect();stop();return;}if(visible&&!document.hidden){tick();schedule();}},1000);
-    const controller={update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;tick();schedule();}};
+    const controller={setMotion(enabled){motion=Boolean(enabled);try{localStorage.setItem(key,motion?'on':'off');}catch{}controls();stop();schedule();},update(data){deadline=parse(data.deadline);start=parse(data.start);observed=parse(data.observedAt);identity(data);lastText=0;tick();schedule();}};
     instances.set(root,controller);
     if(root.dataset.configUrl){
       try{const url=new URL(root.dataset.configUrl,location.href);if(url.origin!==location.origin)throw Error('Configuration must be same-origin');

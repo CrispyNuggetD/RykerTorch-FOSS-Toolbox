@@ -99,3 +99,15 @@ space treatment belongs to the **Campus HQ** visual family, not an official 42 U
 
 More from Christopher Nah (hnah), 42 Singapore:
 [42 portfolio](https://crispynuggetd.github.io/42_Singapore_SUTD/) · [Main 42 repository & README](https://github.com/CrispyNuggetD/42_Singapore_SUTD).
+
+## Optional space backdrop
+
+Include `space-backdrop.css` and deferred `space-backdrop.js` after the scene
+script, and add `data-space-background` to one scene. The original starfield,
+diffuse galaxies/clouds and occasional comet use canvas; no game artwork is
+copied. It expects a `.wrap` reading surface, which remains opaque light grey.
+Scroll/cursor parallax is visible in the margins, keeping text contrast stable.
+A fixed Space motion toggle shares the scene’s saved motion choice. Reduced
+motion/forced colours and hidden tabs are respected. No-JS retains the original
+page background. Omit these two files for the standalone scene alone.
+The astronaut now looks at window-wide mouse input; stars have stronger depth.
