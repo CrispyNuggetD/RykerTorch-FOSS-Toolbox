@@ -82,11 +82,12 @@
       const group=element('g',{class:'eh-arm-rig '+(arm.side<0?'eh-left-arm':'eh-wave-arm')});
       const outline=element('path',{fill:'none',stroke:'#29495a','stroke-width':'6','stroke-linecap':'round','stroke-linejoin':'round'});
       const sleeve=element('path',{fill:'none',stroke:'#dcefe8','stroke-width':'4','stroke-linecap':'round','stroke-linejoin':'round'});
-      const hand=element('circle',{r:'2.7',fill:'#a8e6cf',stroke:'#29495a','stroke-width':'.8'});group.append(outline,sleeve,hand);svg.append(group);return {...arm,outline,sleeve,hand};
+      const hand=element('circle',{r:'2.7',fill:'#a8e6cf',stroke:'#29495a','stroke-width':'.8'});group.append(outline,sleeve,hand);svg.append(group);return {...arm,outline,sleeve,hand,length:12,velocity:0};
     });
-    let cursorPosition=null;
+    let cursorPosition=null,lastArmTime=0;
     function updateArms(now,moving){
       const mood=moving?person.dataset.ehMood:'quiet',time=now/1000;
+      const dt=lastArmTime?Math.max(0,Math.min(.04,(now-lastArmTime)/1000)):1/30;lastArmTime=now;
       const reachingBody=cursorPosition&&moving&&(mood==='near'||mood==='depart');
       const rect=person.getBoundingClientRect();
       const reachX=reachingBody?Math.max(-1,Math.min(1,(cursorPosition.x-rect.left-rect.width/2)/130)):0;
@@ -106,10 +107,14 @@
         angle+=noise;
         const ux=Math.cos(angle),uy=Math.sin(angle),px=-uy,py=ux;
         const bend=panic?Math.sin(time*19.1+side*1.7)*5+Math.cos(time*11.3-side)*2:side*2.5;
-        const length=reaching?16+(panic?Math.cos(time*17.7+side)*2:0):12;
-        const ex=arm.x+ux*7+px*bend,ey=arm.y+uy*7+py*bend;
+        const desiredLength=reaching?(panic?24+Math.sin(time*9.7+side)*4+Math.cos(time*15.1-side)*2:16):12;
+        if(!moving){arm.length=12;arm.velocity=0;}
+        else{arm.velocity+=((desiredLength-arm.length)*105-arm.velocity*12)*dt;arm.length=Math.max(10,Math.min(31,arm.length+arm.velocity*dt));}
+        const length=arm.length,stretch=Math.sqrt(Math.max(1,length/12));
+        arm.outline.setAttribute('stroke-width',Math.max(4,6/stretch));arm.sleeve.setAttribute('stroke-width',Math.max(2.4,4/stretch));
+        const ex=arm.x+ux*length*.48+px*bend,ey=arm.y+uy*length*.48+py*bend;
         const hx=arm.x+ux*length,hy=arm.y+uy*length;
-        const d=`M ${arm.x} ${arm.y} Q ${arm.x+ux*3+px*bend} ${arm.y+uy*3+py*bend} ${ex} ${ey} Q ${hx-ux*4+px*bend*.4} ${hy-uy*4+py*bend*.4} ${hx} ${hy}`;
+        const d=`M ${arm.x} ${arm.y} Q ${arm.x+ux*length*.22+px*bend} ${arm.y+uy*length*.22+py*bend} ${ex} ${ey} Q ${hx-ux*length*.25+px*bend*.4} ${hy-uy*length*.25+py*bend*.4} ${hx} ${hy}`;
         arm.outline.setAttribute('d',d);arm.sleeve.setAttribute('d',d);arm.hand.setAttribute('cx',hx);arm.hand.setAttribute('cy',hy);
       }
     }

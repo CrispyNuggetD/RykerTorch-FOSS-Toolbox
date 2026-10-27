@@ -179,3 +179,8 @@ flail while retaining cursor-directed reach. The body pivots from its feet towar
 rocks side to side during distress. Geometry updates reuse the existing
 30fps scene/pet loop; no extra animation loop, randomness or tracking is added.
 Motion off/system preferences restore a still relaxed pose.
+
+During departure panic, sleeve length uses a bounded damped spring chasing
+several waves: the arms stretch, thin slightly and recoil toward their normal
+length afterwards. This remains decorative SVG geometry; the click hitbox stays
+unchanged and motion off immediately restores a still 12-unit arm pose.
