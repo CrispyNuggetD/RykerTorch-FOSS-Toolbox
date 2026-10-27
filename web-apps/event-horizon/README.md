@@ -1,5 +1,8 @@
 # Event Horizon · Campus HQ space scene
 
+[Campus HQ toolkit: compare tools & start here](https://crispynuggetd.github.io/42_Singapore_SUTD/#toolkit)
+
+
 A cursor-reactive HTML5 canvas, a quietly accreting black hole and a student
 astronaut moving closer as a supplied deadline approaches. The astronaut looks
 at the pointer and links to an Intra profile. The horizon itself has hover/focus

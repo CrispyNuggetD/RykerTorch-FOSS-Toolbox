@@ -55,6 +55,11 @@ More scripts will be added here with a short summary. Each script's directory co
 
 ### Web apps
 
+[Browse the Campus HQ web toolkit and setup guide](https://crispynuggetd.github.io/42_Singapore_SUTD/#toolkit).
+Two tools: Adaptive Pointer and Event Horizon. The space backdrop is an optional
+Event Horizon add-on, not a third standalone package.
+
+
 | Project | What it provides |
 | --- | --- |
 | [Event Horizon](web-apps/event-horizon/README.md) | Canvas space scene, pointer-reactive astronaut/profile link and deadline visualization; works without an API, with an optional minimal JSON feed. |

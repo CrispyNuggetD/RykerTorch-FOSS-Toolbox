@@ -1,5 +1,8 @@
 # Adaptive pointer — a small, reusable website interaction
 
+[Campus HQ toolkit: compare tools & start here](https://crispynuggetd.github.io/42_Singapore_SUTD/#toolkit)
+
+
 An iPadOS-inspired circle that smoothly grows around links/buttons and forms an
 I-beam over text. Originally built for [LAN42](https://crispynuggetd.github.io/42sg-campus-lan/).
 Plain JavaScript + CSS, no framework, package manager, tracking or external service.
