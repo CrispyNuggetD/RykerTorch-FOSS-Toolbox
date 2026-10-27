@@ -111,3 +111,17 @@ A fixed Space motion toggle shares the scene’s saved motion choice. Reduced
 motion/forced colours and hidden tabs are respected. No-JS retains the original
 page background. Omit these two files for the standalone scene alone.
 The astronaut now looks at window-wide mouse input; stars have stronger depth.
+
+## Flight ruler and course log
+
+The calendar-linear HUD ruler runs from supplied start to recorded horizon, with
+a real-time NOW/day marker. Gentle wake strokes are decorative; arrival, bobbing
+and scroll drift never alter the countdown. The baseline astronaut position
+uses the same scale. No start date means a 90-day display window, not a claim
+about joining Core. Motion opt-out removes the wake.
+
+A host page may add `.eh-milestones` with a heading and an ordered list. Keep
+these semantic HTML records separate from canvas. The 42 portfolio builds its
+M.0–M.3 groups from existing owner snapshot project marks; latest API marked
+dates are not proof of official Intra milestone deadlines/completion dates.
+Milestone deadlines, pace plans and black-hole dates must stay distinct.

@@ -48,7 +48,7 @@
       if(!moving){mouse={x:0,y:0};person.style.setProperty('--eh-eye-x','0px');person.style.setProperty('--eh-eye-y','0px');}
       const epoch=Date.now();const valid=Number.isFinite(deadline);const windowStart=Number.isFinite(start)&&start<deadline?start:deadline-90*86400000;
       const progress=valid?Math.max(0,Math.min(1,(epoch-windowStart)/(deadline-windowStart))):.35;
-      const hx=width*.70,hy=height*(width<520?.68:.51),radius=Math.min(width*.115,55);
+      const hx=width*.70,hy=height*(width<520?.49:.52),radius=Math.min(width*.115,55);
       ctx.clearRect(0,0,width,height);
       for(const s of stars){const x=s.x*width+mouse.x*(s.r*38),y=((s.y*height+mouse.y*(s.r*28)-scrollY*(.035+s.r*.045))%height+height)%height;ctx.fillStyle=`rgba(208,234,246,${.25+s.r*.22})`;ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill();}
       const glow=ctx.createRadialGradient(hx,hy,radius*.7,hx,hy,radius*2.6);glow.addColorStop(0,'#91c9c94d');glow.addColorStop(.5,'#4d8c9b22');glow.addColorStop(1,'#4d8c9b00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(hx,hy,radius*2.6,0,Math.PI*2);ctx.fill();
@@ -64,13 +64,28 @@
       scrollDrift=moving?scrollDrift+(desiredScroll-scrollDrift)*.08:0;
       if(!person.matches(':hover,:focus-within')){
         const distance=radius+35+(1-progress)*Math.min(width*.26,170);
-        const settled=Math.max(40,hx-distance),ease=1-Math.pow(1-arrival,3);
+        const settled=40+progress*(hx-radius-74),ease=1-Math.pow(1-arrival,3);
         const enter=moving?(1-ease)*Math.min(width*.26,160):0;
         const bob=moving?Math.sin(phase*4)*7:0,drift=moving?Math.sin(phase*2.6)*3:0;
         person.style.left=Math.max(36,Math.min(hx-radius-34,settled-enter+scrollDrift*24+drift))+'px';
         person.style.top=(hy-18+bob-scrollDrift*22)+'px';
         person.style.setProperty('--eh-tilt',moving?(Math.sin(phase*3)*4-scrollDrift*8)+'deg':'0deg');
       }
+      // Instrument scale is calendar-linear; its marker uses the unanimated position.
+      const railStart=40,railEnd=hx-radius-34,railY=hy+82;
+      ctx.save();ctx.strokeStyle='#a8e6cf55';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(railStart,railY);ctx.lineTo(hx+radius,railY);ctx.stroke();
+      ctx.font='9px ui-monospace,monospace';ctx.fillStyle='#bad9dd';
+      for(let i=0;i<=20;i++){const x=railStart+(railEnd-railStart)*i/20;ctx.beginPath();ctx.moveTo(x,railY);ctx.lineTo(x,railY+(i%5===0?10:5));ctx.stroke();}
+      const markX=railStart+progress*(railEnd-railStart);
+      ctx.fillStyle='#a8e6cf';ctx.beginPath();ctx.moveTo(markX,railY-4);ctx.lineTo(markX-4,railY-11);ctx.lineTo(markX+4,railY-11);ctx.closePath();ctx.fill();
+      ctx.textAlign='left';ctx.fillText(Number.isFinite(start)?'CORE JOINED':'WINDOW START',railStart,railY+27);
+      const shortDate=value=>new Date(value).toLocaleDateString('en-SG',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Singapore'});
+      if(Number.isFinite(start))ctx.fillText(shortDate(start),railStart,railY+41);
+      ctx.textAlign='right';ctx.fillText('RECORDED HORIZON',hx+radius,railY+27);if(valid)ctx.fillText(shortDate(deadline),hx+radius,railY+41);
+      ctx.textAlign='center';ctx.fillStyle='#dffff1';ctx.fillText('NOW'+(Number.isFinite(start)?' · DAY '+Math.max(0,Math.floor((epoch-start)/86400000)):''),markX,railY-17);
+      // Sparse wake strokes suggest travel, not an accelerated passage of real time.
+      if(moving&&!person.matches(':hover,:focus-within')){const px=parseFloat(person.style.left),py=parseFloat(person.style.top);ctx.strokeStyle='#a8e6cf33';for(let i=0;i<3;i++){const slip=(phase*130+i*17)%48;ctx.beginPath();ctx.moveTo(px-36-slip,py-10+i*10);ctx.lineTo(px-26-slip,py-10+i*10);ctx.stroke();}}
+      ctx.restore();
       if(!lastText||now-lastText>1000){lastText=now;if(valid){const left=deadline-epoch;const days=Math.floor(Math.abs(left)/86400000),hours=Math.floor(Math.abs(left)%86400000/3600000);status.textContent=left>=0?`${days}d ${hours}h to the recorded horizon.`:'Recorded horizon date reached; check your current Intra status.';}else status.textContent='Set a deadline to place your journey in time.';const preview=root.querySelector('.eh-horizon-preview');if(preview)preview.textContent=valid?'Recorded horizon: '+new Date(deadline).toLocaleString('en-SG',{timeZone:'Asia/Singapore'})+' SGT · click for details':'Set a recorded deadline';const note=root.querySelector('.eh-source-note');if(note&&Number.isFinite(observed))note.textContent='Snapshot: '+new Date(observed).toLocaleDateString('en-SG')+(epoch-observed>3*86400000?' · refresh needed':'')+' · not a live eligibility check.';}
       if(moving)schedule();
     }
